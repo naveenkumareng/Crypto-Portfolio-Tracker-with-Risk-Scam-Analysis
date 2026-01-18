@@ -100,19 +100,25 @@ export default function Register() {
           </div>
 
           {/* FORM */}
-          <div className="space-y-4">
+          <form
+            className="space-y-4"
+            onSubmit={(e) => {
+              e.preventDefault();
+              handleRegister();
+            }}
+          >
             <Input
               label="Full Name"
               placeholder="Enter your full name"
               onChange={setName}
             />
+
             <Input
               label="Email Address"
               placeholder="Enter your email"
               onChange={setEmail}
             />
 
-            {/* Password with Eye Icon */}
             <PasswordInput
               label="Password"
               placeholder="••••••••"
@@ -124,15 +130,15 @@ export default function Register() {
               placeholder="Re-enter your password"
               onChange={setConfirmPassword}
             />
-          </div>
 
-          <button
-            onClick={handleRegister}
-            disabled={success}
-            className="w-full mt-6 py-3 rounded-lg bg-gradient-to-r from-pink-500 to-purple-600 font-semibold hover:opacity-90 transition disabled:opacity-60"
-          >
-            Create Account
-          </button>
+            <button
+              type="submit"
+              disabled={success}
+              className="w-full mt-6 py-3 rounded-lg bg-gradient-to-r from-pink-500 to-purple-600 font-semibold hover:opacity-90 transition disabled:opacity-60"
+            >
+              Create Account
+            </button>
+          </form>
 
           {/* Demo Mode */}
           <button className="w-full mt-3 py-3 rounded-lg border border-white/20 text-gray-300 hover:bg-white/5 flex items-center justify-center gap-2">

@@ -11,7 +11,6 @@ import {
   Legend,
 } from "recharts";
 
-
 export default function Trades() {
   const [trades, setTrades] = useState([]);
   const [isModalOpen, setIsModalOpen] = useState(false);
@@ -49,27 +48,27 @@ export default function Trades() {
       maximumFractionDigits: 2,
     }).format(value);
   /* ---------------- BUY vs SELL GRAPH DATA ---------------- */
-const getBuySellChartData = () => {
-  const map = {};
+  const getBuySellChartData = () => {
+    const map = {};
 
-  trades.forEach((t) => {
-    if (!map[t.assetSymbol]) {
-      map[t.assetSymbol] = {
-        asset: t.assetSymbol,
-        buy: 0,
-        sell: 0,
-      };
-    }
+    trades.forEach((t) => {
+      if (!map[t.assetSymbol]) {
+        map[t.assetSymbol] = {
+          asset: t.assetSymbol,
+          buy: 0,
+          sell: 0,
+        };
+      }
 
-    if (t.side === "BUY") {
-      map[t.assetSymbol].buy += Number(t.quantity);
-    } else {
-      map[t.assetSymbol].sell += Number(t.quantity);
-    }
-  });
+      if (t.side === "BUY") {
+        map[t.assetSymbol].buy += Number(t.quantity);
+      } else {
+        map[t.assetSymbol].sell += Number(t.quantity);
+      }
+    });
 
-  return Object.values(map);
-};
+    return Object.values(map);
+  };
 
   /* ---------------- AVAILABLE QTY CALC ---------------- */
   const getAvailableQuantity = (asset, editingTradeId = null) => {
@@ -109,7 +108,7 @@ const getBuySellChartData = () => {
       if (formData.side === "SELL") {
         const availableQty = getAvailableQuantity(
           formData.assetSymbol,
-          editing?.id
+          editing?.id,
         );
 
         if (qty > availableQty) {
@@ -157,12 +156,9 @@ const getBuySellChartData = () => {
   return (
     <DashboardLayout>
       <div className="p-10 text-white min-h-screen cyberpunk-bg">
-
         {/* TITLE */}
         <div className="flex justify-between items-center mb-10">
-          <h1 className="text-4xl font-bold tracking-wide">
-            Trades Overview
-          </h1>
+          <h1 className="text-4xl font-bold tracking-wide">Trades Overview</h1>
 
           <button
             onClick={openAddModal}
@@ -204,9 +200,7 @@ const getBuySellChartData = () => {
 
                   <td
                     className={`font-semibold ${
-                      t.side === "BUY"
-                        ? "text-green-400"
-                        : "text-red-400"
+                      t.side === "BUY" ? "text-green-400" : "text-red-400"
                     }`}
                   >
                     {t.side}
@@ -214,9 +208,7 @@ const getBuySellChartData = () => {
 
                   <td>{t.quantity}</td>
 
-                  <td className="text-green-400">
-                    {formatINR(t.price)}
-                  </td>
+                  <td className="text-green-400">{formatINR(t.price)}</td>
 
                   <td>{t.fee}</td>
 
@@ -251,57 +243,54 @@ const getBuySellChartData = () => {
           </table>
         </div>
         {/* BUY vs SELL GRAPH */}
-{trades.length > 0 && (
-  <div className="glass-card p-6 mt-10 rounded-2xl border border-white/10 shadow-xl">
-    <h2 className="text-2xl font-bold mb-6 neon-text">
-      Buy vs Sell Overview
-    </h2>
+        {trades.length > 0 && (
+          <div className="glass-card p-6 mt-10 rounded-2xl border border-white/10 shadow-xl">
+            <h2 className="text-2xl font-bold mb-6 neon-text">
+              Buy vs Sell Overview
+            </h2>
 
-    <div style={{ width: "100%", height: 300 }}>
-      <ResponsiveContainer>
-        <BarChart data={getBuySellChartData()}>
-          <XAxis dataKey="asset" stroke="#aaa" />
-          <YAxis stroke="#aaa" />
-          <Tooltip
-            contentStyle={{
-              backgroundColor: "#0f172a",
-              border: "1px solid rgba(255,255,255,0.1)",
-              color: "#fff",
-            }}
-          />
-          <Legend />
+            <div style={{ width: "100%", height: 300 }}>
+              <ResponsiveContainer>
+                <BarChart data={getBuySellChartData()}>
+                  <XAxis dataKey="asset" stroke="#aaa" />
+                  <YAxis stroke="#aaa" />
+                  <Tooltip
+                    contentStyle={{
+                      backgroundColor: "#0f172a",
+                      border: "1px solid rgba(255,255,255,0.1)",
+                      color: "#fff",
+                    }}
+                  />
+                  <Legend />
 
-          <Bar
-  dataKey="buy"
-  fill="#22c55e"
-  name="BUY Quantity"
-  activeBar={{
-    fill: "#22c55e",
-    stroke: "#22c55e",
-    strokeWidth: 2,
-    filter: "drop-shadow(0 0 8px #22c55e)",
-  }}
-/>
+                  <Bar
+                    dataKey="buy"
+                    fill="#22c55e"
+                    name="BUY Quantity"
+                    activeBar={{
+                      fill: "#22c55e",
+                      stroke: "#22c55e",
+                      strokeWidth: 2,
+                      filter: "drop-shadow(0 0 8px #22c55e)",
+                    }}
+                  />
 
-<Bar
-  dataKey="sell"
-  fill="#ef4444"
-  name="SELL Quantity"
-  activeBar={{
-    fill: "#ef4444",
-    stroke: "#ef4444",
-    strokeWidth: 2,
-    filter: "drop-shadow(0 0 8px #ef4444)",
-  }}
-/>
-
-
-        </BarChart>
-      </ResponsiveContainer>
-    </div>
-  </div>
-)}
-
+                  <Bar
+                    dataKey="sell"
+                    fill="#ef4444"
+                    name="SELL Quantity"
+                    activeBar={{
+                      fill: "#ef4444",
+                      stroke: "#ef4444",
+                      strokeWidth: 2,
+                      filter: "drop-shadow(0 0 8px #ef4444)",
+                    }}
+                  />
+                </BarChart>
+              </ResponsiveContainer>
+            </div>
+          </div>
+        )}
 
         {/* ADD / EDIT MODAL */}
         {isModalOpen && (
@@ -325,14 +314,18 @@ const getBuySellChartData = () => {
                 />
 
                 <select
-                  className="cyber-input"
+                  className="cyber-input bg-slate-900 text-white"
                   value={formData.side}
                   onChange={(e) =>
                     setFormData({ ...formData, side: e.target.value })
                   }
                 >
-                  <option value="BUY">BUY</option>
-                  <option value="SELL">SELL</option>
+                  <option value="BUY" className="bg-slate-900 text-green-400">
+                    BUY
+                  </option>
+                  <option value="SELL" className="bg-slate-900 text-red-400">
+                    SELL
+                  </option>
                 </select>
 
                 <input
@@ -392,8 +385,8 @@ const getBuySellChartData = () => {
 
               <p className="text-gray-300 mb-6">
                 You are trying to SELL <b>{sellError.attempting}</b>{" "}
-                {sellError.asset}, but you only own{" "}
-                <b>{sellError.available}</b>.
+                {sellError.asset}, but you only own <b>{sellError.available}</b>
+                .
               </p>
 
               <div className="flex justify-end">
@@ -412,9 +405,7 @@ const getBuySellChartData = () => {
         {showDeletePopup && (
           <div className="modal-overlay">
             <div className="delete-box">
-              <h3 className="text-xl font-semibold mb-4">
-                Delete Trade?
-              </h3>
+              <h3 className="text-xl font-semibold mb-4">Delete Trade?</h3>
 
               <p className="text-gray-300 mb-6">
                 Are you sure you want to delete{" "}
@@ -429,17 +420,13 @@ const getBuySellChartData = () => {
                   Cancel
                 </button>
 
-                <button
-                  className="delete-btn px-6 py-2"
-                  onClick={handleDelete}
-                >
+                <button className="delete-btn px-6 py-2" onClick={handleDelete}>
                   Delete
                 </button>
               </div>
             </div>
           </div>
         )}
-
       </div>
     </DashboardLayout>
   );

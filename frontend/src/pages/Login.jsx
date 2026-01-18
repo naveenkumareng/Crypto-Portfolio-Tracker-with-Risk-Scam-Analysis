@@ -84,7 +84,14 @@ export default function Login() {
           </div>
 
           {/* FORM */}
-          <div className="space-y-4">
+          {/* FORM */}
+          <form
+            className="space-y-4"
+            onSubmit={(e) => {
+              e.preventDefault();
+              handleLogin();
+            }}
+          >
             <Input
               label="Email Address"
               type="email"
@@ -92,20 +99,27 @@ export default function Login() {
               onChange={setEmail}
             />
 
-            {/* Password with Eye Icon */}
             <PasswordInput
               label="Password"
               placeholder="••••••••"
               onChange={setPassword}
             />
-          </div>
+            <p className="text-sm text-right mt-2">
+              <Link
+                to="/forgot-password"
+                className="text-purple-400 hover:underline"
+              >
+                Forgot password?
+              </Link>
+            </p>
 
-          <button
-            onClick={handleLogin}
-            className="w-full mt-6 py-3 rounded-lg bg-gradient-to-r from-pink-500 to-purple-600 font-semibold hover:opacity-90 transition"
-          >
-            Sign In
-          </button>
+            <button
+              type="submit"
+              className="w-full mt-6 py-3 rounded-lg bg-gradient-to-r from-pink-500 to-purple-600 font-semibold hover:opacity-90 transition"
+            >
+              Sign In
+            </button>
+          </form>
 
           {/* Demo Mode */}
           <button className="w-full mt-3 py-3 rounded-lg border border-white/20 text-gray-300 hover:bg-white/5 flex items-center justify-center gap-2">
