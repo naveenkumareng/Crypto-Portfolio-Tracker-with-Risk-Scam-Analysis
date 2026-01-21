@@ -8,7 +8,7 @@ import java.util.List;
 import org.springframework.web.bind.annotation.*;
 
 @RestController
-@RequestMapping("/pricing")
+@RequestMapping("/api/pricing")
 @CrossOrigin(origins = "http://localhost:3000")
 public class PricingController {
 

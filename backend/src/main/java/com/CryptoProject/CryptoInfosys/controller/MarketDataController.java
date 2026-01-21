@@ -19,7 +19,7 @@ public class MarketDataController {
 
     private static final long CACHE_DURATION = 5 * 60 * 1000; // 5 minutes
 
-    @GetMapping("/coins")
+    @GetMapping(value = "/coins", produces="application/json")
     public Object getMarketCoins() {
 
         long now = System.currentTimeMillis();

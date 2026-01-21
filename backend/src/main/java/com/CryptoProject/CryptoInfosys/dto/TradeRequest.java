@@ -6,6 +6,7 @@ import java.math.BigDecimal;
 public class TradeRequest {
 
     private String assetSymbol;
+    private String exchange;
     private TradeSide side;   // ✅ ENUM, not String
     private BigDecimal quantity;
     private BigDecimal price;
@@ -26,4 +27,11 @@ public class TradeRequest {
 
     public BigDecimal getFee() { return fee; }
     public void setFee(BigDecimal fee) { this.fee = fee; }
+
+    public String getExchange() {
+        return exchange;
+    }
+    public void setExchange(String exchange) {
+        this.exchange = exchange;
+    }
 }

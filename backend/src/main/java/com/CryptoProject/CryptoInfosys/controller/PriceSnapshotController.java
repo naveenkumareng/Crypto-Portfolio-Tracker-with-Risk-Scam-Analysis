@@ -20,6 +20,12 @@ public class PriceSnapshotController {
         this.priceSnapshotService = priceSnapshotService;
     }
 
+    @GetMapping
+    public Map<String, List<PriceHistoryResponse>> getPrices() {
+        return priceSnapshotService.getAllPriceHistory();
+    }
+
+
     @GetMapping("/history/{asset}")
     public List<PriceHistoryResponse> getHistory(
             @PathVariable String asset,

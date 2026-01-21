@@ -2,6 +2,13 @@ package com.CryptoProject.CryptoInfosys.model;
 
 import jakarta.persistence.*;
 
+import com.CryptoProject.CryptoInfosys.model.User;
+import lombok.Getter;
+import lombok.Setter;
+import java.math.BigDecimal;
+
+@Getter
+@Setter
 @Entity
 @Table(name = "holdings")
 public class Holding {
@@ -19,36 +26,71 @@ public class Holding {
     @Column(name = "asset_symbol", nullable = false)
     private String symbol;
 
-    private Double quantity;
-    private Double price;  // buy price or latest updated price
+    private String exchange;
+
+    private BigDecimal quantity;
+    private BigDecimal price;  // buy price or latest updated price
 
     public Holding() {}
 
-    public Holding(Integer id, User user, String asset, String symbol, Double quantity, Double price) {
+    public Holding(Integer id, User user, String asset, String symbol, BigDecimal quantity, BigDecimal price, String username) {
         this.id = id;
         this.user = user;
         this.asset = asset;
         this.symbol = symbol;
+        this.exchange = exchange;
         this.quantity = quantity;
         this.price = price;
     }
+    public String getUserIdentifier() {
+        return user != null ? user.getEmail() : null; // or getUserId()
+    }
 
-    // --- Getters & Setters ---
-    public Integer getId() { return id; }
-    public void setId(Integer id) { this.id = id; }
+    @Override
+    public String toString() {
+        return "Holding{" +
+                "id=" + id +
+                ", user=" + (user != null ? user.getEmail() : "null") +
+                ", asset='" + asset + '\'' +
+                ", symbol='" + symbol + '\'' +
+                ", exchange='" + exchange + '\'' +
+                ", quantity=" + quantity +
+                ", price=" + price +
+                '}';
+    }
 
-    public User getUser() { return user; }
-    public void setUser(User user) { this.user = user; }
+    @PrePersist
+@PreUpdate
+private void validate() {
+    if (symbol == null || symbol.isBlank()) {
+        throw new IllegalArgumentException("Asset symbol is required");
+    }
+    if (exchange == null || exchange.isBlank()) {
+        throw new IllegalArgumentException("Exchange is required");
+    }
+    if (quantity == null || quantity.compareTo(BigDecimal.ZERO) < 0) {
+        throw new IllegalArgumentException("Quantity cannot be negative");
+    }
+    if (price == null || price.compareTo(BigDecimal.ZERO) < 0) {
+        throw new IllegalArgumentException("Price cannot be negative");
+    }
+}
 
-    public String getAsset() { return asset; }
-    public void setAsset(String asset) { this.asset = asset; }
 
-    public String getSymbol() { return symbol; }
-    public void setSymbol(String symbol) { this.symbol = symbol; }
+    public String getSymbol() {
+    return symbol;
+}
 
-    public Double getQuantity() { return quantity; }
-    public void setQuantity(Double quantity) { this.quantity = quantity; }
+public String getExchange() {
+    return exchange;
+}
 
-    public Double getPrice() { return price; }
-    public void setPrice(Double price) { this.price = price; }
+public BigDecimal getQuantity() {
+    return quantity;
+}
+
+public BigDecimal getPrice() {
+    return price;
+}
+
 }

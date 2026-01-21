@@ -8,7 +8,7 @@ import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
 
 @RestController
-@RequestMapping("/trades")
+@RequestMapping("/api/trades")
 @CrossOrigin(
 	    origins = "http://localhost:3000",
 	    methods = { RequestMethod.GET, RequestMethod.POST, RequestMethod.PUT, RequestMethod.DELETE, RequestMethod.OPTIONS }
@@ -24,24 +24,33 @@ public class TradeController {
         this.jwtUtils = jwtUtils;
     }
 
-    @PostMapping
-    public ResponseEntity<?> addTrade(
-            @RequestHeader("Authorization") String authHeader,
-            @RequestBody TradeRequest request) {
+    @PostMapping("/add-trade")
+public ResponseEntity<?> addTrade(
+        @RequestHeader("Authorization") String authHeader,
+        @RequestBody TradeRequest request) {
 
-        try {
-            String token = authHeader.substring(7);
-            String email = jwtUtils.extractUsername(token);
-
-            return ResponseEntity.ok(tradeService.addTrade(request, email));
-
-        } catch (IllegalStateException e) {
-            return ResponseEntity.badRequest().body(e.getMessage());
+    try {
+        if (request.getAssetSymbol() == null || request.getAssetSymbol().isBlank()) {
+            return ResponseEntity.badRequest().body("Asset symbol is required");
         }
+
+        if (request.getExchange() == null || request.getExchange().isBlank()) {
+            return ResponseEntity.badRequest().body("Exchange is required");
+        }
+
+        String token = authHeader.substring(7);
+        String email = jwtUtils.extractUsername(token);
+
+        return ResponseEntity.ok(tradeService.addTrade(request, email));
+
+    } catch (IllegalStateException e) {
+        return ResponseEntity.badRequest().body(e.getMessage());
     }
+}
 
 
-    @GetMapping
+
+    @GetMapping("/get-trades")
     public ResponseEntity<?> getTrades(
             @RequestHeader("Authorization") String authHeader) {
 

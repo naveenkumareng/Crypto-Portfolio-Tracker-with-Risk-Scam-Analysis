@@ -12,7 +12,7 @@ import java.util.List;
 import org.springframework.web.bind.annotation.*;
 
 @RestController
-@RequestMapping("/pnl")
+@RequestMapping("/api/pnl")
 @CrossOrigin(origins = "http://localhost:3000")
 public class PnLController {
 

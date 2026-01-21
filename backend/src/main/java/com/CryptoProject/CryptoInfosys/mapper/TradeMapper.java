@@ -7,13 +7,13 @@ public class TradeMapper {
 
     public static TradeDTO toDTO(Trade trade) {
         TradeDTO dto = new TradeDTO();
-        dto.id = trade.getId();
-        dto.assetSymbol = trade.getAssetSymbol();
-        dto.side = trade.getSide().name();
-        dto.quantity = trade.getQuantity();
-        dto.price = trade.getPrice();
-        dto.fee = trade.getFee();
-        dto.executedAt = trade.getExecutedAt();
+        dto.setId(trade.getId());
+        dto.setAssetSymbol(trade.getAssetSymbol());
+        dto.setSide(trade.getSide());
+        dto.setQuantity(trade.getQuantity());
+        dto.setPrice(trade.getPrice());
+        dto.setFee(trade.getFee());
+        dto.setExecutedAt(trade.getExecutedAt());
         return dto;
     }
 }

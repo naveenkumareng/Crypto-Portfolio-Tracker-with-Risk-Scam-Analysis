@@ -2,6 +2,8 @@ package com.CryptoProject.CryptoInfosys.model;
 
 import jakarta.persistence.*;
 
+import java.util.Map;
+
 @Entity
 @Table(name = "users")
 public class User {
@@ -27,6 +29,16 @@ public class User {
         this.email = email;
         this.password = password;
     }
+
+    @ElementCollection
+    @CollectionTable(
+        name = "user_preferences",
+        joinColumns = @JoinColumn(name = "user_id")
+    )
+    @MapKeyColumn(name = "preference_key")
+    @Column(name = "preference_value")
+    private Map<String, String> preferences;
+
 
     // builder-like convenience
     public static Builder builder() { return new Builder(); }
@@ -56,4 +68,13 @@ public class User {
 
     public String getPassword() { return password; }
     public void setPassword(String password) { this.password = password; }
+
+    public Map<String, String> getPreferences() {
+    return preferences;
+}
+
+public void setPreferences(Map<String, String> preferences) {
+    this.preferences = preferences;
+}
+
 }

@@ -1,33 +1,29 @@
 package com.CryptoProject.CryptoInfosys.controller;
 
+import com.CryptoProject.CryptoInfosys.model.Notification;
+import com.CryptoProject.CryptoInfosys.repository.NotificationRepository;
 import com.CryptoProject.CryptoInfosys.security.JwtUtils;
 import com.CryptoProject.CryptoInfosys.service.NotificationService;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
 
+import java.util.List;
+
 @RestController
-@RequestMapping("/notifications")
+@RequestMapping("/api/notifications")
 @CrossOrigin(origins = "http://localhost:3000")
 public class NotificationController {
 
     private final NotificationService notificationService;
     private final JwtUtils jwtUtils;
 
-    public NotificationController(
-            NotificationService notificationService,
-            JwtUtils jwtUtils
-    ) {
+    public NotificationController(NotificationService notificationService, JwtUtils jwtUtils) {
         this.notificationService = notificationService;
         this.jwtUtils = jwtUtils;
     }
 
-    // --------------------------------------------------
-    // GET ALL NOTIFICATIONS (for logged-in user)
-    // --------------------------------------------------
     @GetMapping
-    public ResponseEntity<?> getNotifications(
-            @RequestHeader("Authorization") String authHeader
-    ) {
+    public ResponseEntity<?> getNotifications(@RequestHeader("Authorization") String authHeader) {
         String token = authHeader.substring(7);
         String email = jwtUtils.extractUsername(token);
 

@@ -5,7 +5,7 @@ import com.CryptoProject.CryptoInfosys.service.RiskAnalysisService;
 import org.springframework.web.bind.annotation.*;
 
 @RestController
-@RequestMapping("/risk-alerts")
+@RequestMapping("/api/risk-alerts")
 @CrossOrigin(origins = "http://localhost:3000")
 public class RiskAlertController {
 

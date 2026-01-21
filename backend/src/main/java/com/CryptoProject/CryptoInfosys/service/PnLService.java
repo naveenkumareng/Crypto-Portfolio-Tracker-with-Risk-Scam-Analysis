@@ -6,6 +6,8 @@ import com.CryptoProject.CryptoInfosys.dto.PnLTimelineDTO;
 import com.CryptoProject.CryptoInfosys.model.Trade;
 import com.CryptoProject.CryptoInfosys.repository.TradeRepository;
 import org.springframework.stereotype.Service;
+import com.CryptoProject.CryptoInfosys.model.TradeSide;
+
 
 import java.time.LocalDate;
 import java.util.*;
@@ -70,7 +72,7 @@ public class PnLService {
             double qty = t.getQuantity().doubleValue();
             double price = t.getPrice().doubleValue();
 
-            if (t.getSide().name().equals("BUY")) {
+            if (t.getSide() == TradeSide.BUY) {
                 double totalCost =
                         (dto.avgBuyPrice * dto.quantity)
                         + (price * qty);
@@ -80,7 +82,7 @@ public class PnLService {
                         dto.quantity == 0 ? 0 : totalCost / dto.quantity;
             }
 
-            if (t.getSide().name().equals("SELL")) {
+            if (t.getSide() == TradeSide.SELL) {
                 dto.realizedPnL +=
                         (price - dto.avgBuyPrice) * qty;
 
