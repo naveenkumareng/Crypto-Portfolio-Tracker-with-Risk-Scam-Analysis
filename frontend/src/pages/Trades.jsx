@@ -1,4 +1,5 @@
-import { useEffect, useState } from "react";
+import { useEffect, useState, useContext } from "react";
+import { DemoContext } from "../context/DemoContext";
 import DashboardLayout from "../layout/DashboardLayout";
 import api from "../api/axios";
 import {
@@ -12,11 +13,20 @@ import {
 } from "recharts";
 
 export default function Trades() {
+  const { isDemo } = useContext(DemoContext);
   const [trades, setTrades] = useState([]);
   const [isModalOpen, setIsModalOpen] = useState(false);
   const [editing, setEditing] = useState(null);
   const [showDeletePopup, setShowDeletePopup] = useState(null);
   const [sellError, setSellError] = useState(null);
+
+  const MOCK_TRADES = [
+    { id: 1, assetSymbol: 'BTC', side: 'BUY', quantity: 0.5, price: 50000, fee: 50 },
+    { id: 2, assetSymbol: 'ETH', side: 'BUY', quantity: 10, price: 3000, fee: 30 },
+    { id: 3, assetSymbol: 'SOL', side: 'BUY', quantity: 50, price: 150, fee: 7.5 },
+    { id: 4, assetSymbol: 'ADA', side: 'BUY', quantity: 1000, price: 1.2, fee: 1.2 },
+    { id: 5, assetSymbol: 'ETH', side: 'SELL', quantity: 2, price: 3500, fee: 3.5 },
+  ];
 
   const [formData, setFormData] = useState({
     assetSymbol: "",
@@ -27,24 +37,14 @@ export default function Trades() {
     fee: "",
   });
 
-  useEffect(() => {
-  const token = localStorage.getItem("token");
-  if (!token) {
-    console.error("No token found, redirecting to login");
-    return;
-  }
-  fetchTrades();
-}, []);
-
-
   /* ---------------- FETCH TRADES ---------------- */
   const fetchTrades = async () => {
     try {
       const res = await api.get("/api/trades/get-trades", {
-  headers: {
-    Authorization: `Bearer ${localStorage.getItem("token")}`
-  }
-  });
+        headers: {
+          Authorization: `Bearer ${localStorage.getItem("token")}`
+        }
+      });
       setTrades(res.data || []);
     } catch (err) {
       console.error("Error loading trades", err);
@@ -52,8 +52,17 @@ export default function Trades() {
   };
 
   useEffect(() => {
-    fetchTrades();
-  }, []);
+    if (isDemo) {
+      setTrades(MOCK_TRADES);
+    } else {
+      const token = localStorage.getItem("token");
+      if (!token) {
+        console.error("No token found, redirecting to login");
+        return;
+      }
+      fetchTrades();
+    }
+  }, [isDemo]);
 
   /* ---------------- FORMAT INR ---------------- */
   const formatINR = (value) =>
@@ -184,7 +193,8 @@ export default function Trades() {
 
           <button
             onClick={openAddModal}
-            className="px-6 py-3 rounded-xl font-semibold neon-button"
+            disabled={isDemo}
+            className={`px-6 py-3 rounded-xl font-semibold neon-button ${isDemo && 'opacity-50 cursor-not-allowed'}`}
           >
             + Add Trade
           </button>
@@ -237,6 +247,7 @@ export default function Trades() {
                   <td className="text-right opacity-80 group-hover:opacity-100 transition-all">
                     <button
                       onClick={() => {
+                        if (isDemo) return;
                         setEditing(t);
                         setFormData({
                           assetSymbol: t.assetSymbol,
@@ -247,14 +258,19 @@ export default function Trades() {
                         });
                         setIsModalOpen(true);
                       }}
-                      className="px-4 text-blue-400 py-2 text-sm rounded-lg edit-btn mr-2"
+                      disabled={isDemo}
+                      className={`px-4 text-blue-400 py-2 text-sm rounded-lg edit-btn mr-2 ${isDemo && 'opacity-50 cursor-not-allowed'}`}
                     >
                       Edit
                     </button>
 
                     <button
-                      onClick={() => setShowDeletePopup(t)}
-                      className="px-4 py-2 text-sm rounded-lg delete-btn"
+                      onClick={() => {
+                        if (isDemo) return;
+                        setShowDeletePopup(t);
+                      }}
+                      disabled={isDemo}
+                      className={`px-4 py-2 text-sm rounded-lg delete-btn ${isDemo && 'opacity-50 cursor-not-allowed'}`}
                     >
                       Delete
                     </button>

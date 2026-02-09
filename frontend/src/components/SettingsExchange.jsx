@@ -8,50 +8,23 @@ const SettingsExchanges = () => {
   const [apiKey, setApiKey] = useState("");
   const [apiSecret, setApiSecret] = useState("");
   const [loading, setLoading] = useState(false);
-  const [isConnected, setIsConnected] = useState(false);
-
-  const syncBalance = async () => {
-    try {
-      const token = localStorage.getItem("token");
-
-      const res = await api.get("/api/exchange-accounts/sync/binance", {
-        headers: {
-          Authorization: `Bearer ${token}`,
-        },
-      });
-
-      const nonZeroBalances = res.data.balances.filter(
-        (b) => Number(b.free) > 0 || Number(b.locked) > 0,
-      );
-
-      setBalances(nonZeroBalances);
-      toast.success("Balance synced");
-    } catch {
-      toast.error("Failed to sync balance");
-    }
-  };
+  const [connectedExchanges, setConnectedExchanges] = useState([]);
 
   useEffect(() => {
     const checkConnection = async () => {
-  try {
-    const token = localStorage.getItem("token");
+      try {
+        const token = localStorage.getItem("token");
 
-    const res = await api.get("/api/exchange-accounts", {
-      headers: { Authorization: `Bearer ${token}` },
-    });
+        const res = await api.get("/api/exchange-accounts", {
+          headers: { Authorization: `Bearer ${token}` },
+        });
 
-    const binanceConnected = res.data?.some(
-      (acc) => acc.exchange === "BINANCE"
-    );
-
-    setIsConnected(binanceConnected);
-  } catch (err) {
-    // ✅ THIS IS EXPECTED WHEN NO EXCHANGE EXISTS
-    console.warn("No exchange connected yet");
-    setIsConnected(false);
-  }
-};
-
+        setConnectedExchanges(res.data || []);
+      } catch (err) {
+        console.warn("Could not fetch connected exchanges", err);
+        setConnectedExchanges([]);
+      }
+    };
 
     checkConnection();
   }, []);
@@ -77,7 +50,7 @@ const SettingsExchanges = () => {
       );
 
       toast.success("Exchange connected");
-      setIsConnected("true");
+      setConnectedExchanges([...connectedExchanges, { exchange }]);
       setApiKey("");
       setApiSecret("");
     } catch {
@@ -89,7 +62,7 @@ const SettingsExchanges = () => {
 
   const disconnectExchange = async () => {
     const confirm = window.confirm(
-      "Are you sure you want to disconnect Binance?",
+      `Are you sure you want to disconnect ${exchange}?`,
     );
 
     if (!confirm) return;
@@ -97,17 +70,40 @@ const SettingsExchanges = () => {
     try {
       const token = localStorage.getItem("token");
 
-      await api.delete("/api/exchange-accounts/BINANCE", {
+      await api.delete(`/api/exchange-accounts/${exchange}`, {
         headers: {
           Authorization: `Bearer ${token}`,
         },
       });
 
       toast.success("Exchange disconnected");
+      setConnectedExchanges(
+        connectedExchanges.filter((ex) => ex.exchange !== exchange)
+      );
       setBalances([]);
-      setIsConnected(false);
     } catch (err) {
       toast.error("Failed to disconnect exchange");
+    }
+  };
+
+  const syncBalance = async () => {
+    try {
+      const token = localStorage.getItem("token");
+
+      const res = await api.get(`/api/exchange-accounts/sync/${exchange.toLowerCase()}`, {
+        headers: {
+          Authorization: `Bearer ${token}`,
+        },
+      });
+
+      const nonZeroBalances = res.data.balances.filter(
+        (b) => Number(b.free) > 0 || Number(b.locked) > 0,
+      );
+
+      setBalances(nonZeroBalances);
+      toast.success("Balance synced");
+    } catch {
+      toast.error("Failed to sync balance");
     }
   };
 
@@ -162,27 +158,29 @@ const SettingsExchanges = () => {
         onClick={syncBalance}
         className="w-full text-lg font-semibold bg-slate-700 py-2 rounded text-white"
       >
-        🔄 Sync Binance Balance
+        🔄 Sync {exchange} Balance
       </button>
 
-      {/* Connected Exchange Card */}
-
-      {isConnected && (
-        <div className="mt-6 rounded-xl border border-slate-800 bg-gradient-to-r from-slate-900 to-black p-4 flex items-center gap-4">
-          <img
-            src="https://cryptologos.cc/logos/binance-coin-bnb-logo.png"
-            alt="Binance"
-            className="h-10 w-10"
-          />
-          <div className="flex-1">
-            <div className="text-white font-semibold">Binance Connected</div>
-            <div className="text-xs text-gray-400">
-              Spot wallet linked successfully
+      {/* Connected Exchange Cards */}
+      <div className="space-y-4">
+        {connectedExchanges.map((ex) => (
+          <div
+            key={ex.exchange}
+            className="mt-6 rounded-xl border border-slate-800 bg-gradient-to-r from-slate-900 to-black p-4 flex items-center gap-4"
+          >
+            <div className="h-10 w-10 rounded-full bg-gray-700 flex items-center justify-center font-bold">
+              {ex.exchange.charAt(0)}
             </div>
+            <div className="flex-1">
+              <div className="text-white font-semibold">{ex.exchange} Connected</div>
+              <div className="text-xs text-gray-400">
+                Spot wallet linked successfully
+              </div>
+            </div>
+            <span className="text-green-400 text-sm font-semibold">● Active</span>
           </div>
-          <span className="text-green-400 text-sm font-semibold">● Active</span>
-        </div>
-      )}
+        ))}
+      </div>
 
       {/* Portfolio Table */}
       <div className="mt-8 rounded-2xl border border-slate-800 bg-gradient-to-b from-slate-900/80 to-black/80 p-4">

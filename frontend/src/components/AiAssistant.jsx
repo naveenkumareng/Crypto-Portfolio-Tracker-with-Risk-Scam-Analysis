@@ -6,7 +6,8 @@ import {
   XMarkIcon,
 } from "@heroicons/react/24/solid";
 import { AnimatePresence, motion } from "framer-motion";
-import { useEffect, useRef, useState } from "react";
+import { useEffect, useRef, useState, useContext } from "react";
+import { DemoContext } from "../context/DemoContext";
 import api from "../api/axios";
 
 const languages = [
@@ -28,6 +29,7 @@ const AIAssistant = () => {
   const [isListening, setIsListening] = useState(false);
   const [selectedLang, setSelectedLang] = useState(languages[0].code);
 
+  const { isDemo } = useContext(DemoContext);
   const messagesEndRef = useRef(null);
   const recognitionRef = useRef(null);
 
@@ -45,59 +47,51 @@ const AIAssistant = () => {
     window.speechSynthesis.speak(utterance);
   };
 
-  // ---- AI Logic ----
-
- 
   // ---- Message sender (single source of truth) ----
   const sendMessage = async (message) => {
-  try {
-    setIsTyping(true);
+    try {
+      setIsTyping(true);
 
-    // 1️⃣ add user message immediately
-    setMessages((prev) => [
-      ...prev,
-      { sender: "user", text: message },
-    ]);
+      // 1️⃣ add user message immediately
+      setMessages((prev) => [...prev, { sender: "user", text: message }]);
 
-    // 2️⃣ call backend (Axios instance already adds JWT)
-    const res = await api.post("/api/ai/chat", { message });
+      // 2️⃣ call backend (Axios instance already adds JWT)
+      const res = await api.post("/api/ai/chat", {
+        message,
+        isDemoMode: isDemo,
+      });
 
-    const reply =
-      res.data?.reply || "Sorry, I couldn't understand that.";
+      const reply = res.data.reply || "Sorry, I couldn't understand that.";
 
-    // 3️⃣ add AI response
-    setMessages((prev) => [
-      ...prev,
-      { sender: "ai", text: reply },
-    ]);
+      // 3️⃣ add AI response
+      setMessages((prev) => [...prev, { sender: "ai", text: reply }]);
 
-    // 4️⃣ speak response
-    speak(reply);
-  } catch (err) {
-    setMessages((prev) => [
-      ...prev,
-      {
-        sender: "ai",
-        text: "⚠ AI service is temporarily unavailable.",
-      },
-    ]);
-  } finally {
-    setIsTyping(false);
-  }
-};
-
+      // 4️⃣ speak response
+      speak(reply.replace("[Demo Mode]", ""));
+    } catch (err) {
+      console.log(err);
+      setMessages((prev) => [
+        ...prev,
+        {
+          sender: "ai",
+          text: "⚠ AI service is temporarily unavailable.",
+        },
+      ]);
+    } finally {
+      setIsTyping(false);
+    }
+  };
 
   // ---- Form submit ----
   const handleSend = async (e) => {
-  e.preventDefault();
-  if (!input.trim() || isTyping) return;
+    e.preventDefault();
+    if (!input.trim() || isTyping) return;
 
-  const msg = input;
-  setInput("");
+    const msg = input;
+    setInput("");
 
-  await sendMessage(msg);
-};
-
+    await sendMessage(msg);
+  };
 
   // ---- Voice input ----
   const handleMicClick = () => {
@@ -163,6 +157,11 @@ const AIAssistant = () => {
                 <h3 className="font-bold text-white flex items-center gap-2">
                   <SparklesIcon className="h-5 w-5 text-pink-400" />
                   AI Assistant
+                  {isDemo && (
+                    <span className="text-xs font-bold text-sky-400 bg-sky-400/10 px-2 py-1 rounded-full">
+                      DEMO MODE
+                    </span>
+                  )}
                 </h3>
                 <div className="flex items-center gap-2">
                   <LanguageIcon className="h-5 w-5 text-slate-400" />
@@ -194,24 +193,37 @@ const AIAssistant = () => {
 
               {/* Messages */}
               <div className="flex-1 p-4 space-y-4 overflow-y-auto">
-                {messages.map((msg, i) => (
-                  <div
-                    key={i}
-                    className={`flex ${
-                      msg.sender === "user" ? "justify-end" : "justify-start"
-                    }`}
-                  >
+                {messages.map((msg, i) => {
+                  const isDemoResponse =
+                    msg.sender === "ai" && msg.text.startsWith("[Demo Mode]");
+                  const displayText = isDemoResponse
+                    ? msg.text.substring(12)
+                    : msg.text;
+
+                  return (
                     <div
-                      className={`max-w-[80%] p-3 rounded-2xl ${
-                        msg.sender === "user"
-                          ? "bg-purple-600 text-white rounded-br-none"
-                          : "bg-slate-700/50 text-slate-300 rounded-bl-none"
+                      key={i}
+                      className={`flex ${
+                        msg.sender === "user" ? "justify-end" : "justify-start"
                       }`}
                     >
-                      {msg.text}
+                      <div
+                        className={`max-w-[80%] p-3 rounded-2xl flex flex-col ${
+                          msg.sender === "user"
+                            ? "bg-purple-600 text-white rounded-br-none"
+                            : "bg-slate-700/50 text-slate-300 rounded-bl-none"
+                        }`}
+                      >
+                        {isDemoResponse && (
+                          <span className="text-xs font-bold text-sky-400 mb-1">
+                            Demo Analysis
+                          </span>
+                        )}
+                        {displayText}
+                      </div>
                     </div>
-                  </div>
-                ))}
+                  );
+                })}
 
                 {isTyping && (
                   <div className="flex justify-start">
@@ -230,8 +242,8 @@ const AIAssistant = () => {
               <div className="p-4 border-t border-slate-800/50">
                 <form onSubmit={handleSend} className="flex items-center gap-2">
                   <input
-                  id="ai-message"
-                  name="ai-message"
+                    id="ai-message"
+                    name="ai-message"
                     value={input}
                     onChange={(e) => setInput(e.target.value)}
                     placeholder="Ask about your portfolio..."

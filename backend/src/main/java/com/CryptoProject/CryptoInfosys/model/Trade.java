@@ -4,7 +4,7 @@ import jakarta.persistence.*;
 
 import java.math.BigDecimal;
 import java.time.LocalDateTime;
-import com.CryptoProject.CryptoInfosys.model.User;;
+import com.CryptoProject.CryptoInfosys.model.User;
 import com.CryptoProject.CryptoInfosys.model.TradeSide;
 
 

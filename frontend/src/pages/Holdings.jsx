@@ -1,4 +1,5 @@
-import { useEffect, useState } from "react";
+import { useEffect, useState, useContext } from "react";
+import { DemoContext } from "../context/DemoContext";
 import DashboardLayout from "../layout/DashboardLayout";
 import api from "../api/axios";
 
@@ -35,8 +36,16 @@ const ASSET_META = {
 };
 
 export default function Holdings() {
+  const { isDemo } = useContext(DemoContext);
   const [holdings, setHoldings] = useState([]);
   const [prices, setPrices] = useState({});
+
+  const MOCK_HOLDINGS = [
+    { id: 1, symbol: 'BTC', quantity: 0.5, price: 50000 },
+    { id: 2, symbol: 'ETH', quantity: 10, price: 3000 },
+    { id: 3, symbol: 'SOL', quantity: 50, price: 150 },
+    { id: 4, symbol: 'ADA', quantity: 1000, price: 1.2 },
+  ];
 
   /* ---------------- FETCH HOLDINGS ---------------- */
   const fetchHoldings = async () => {
@@ -63,9 +72,13 @@ export default function Holdings() {
   };
 
   useEffect(() => {
-    fetchHoldings();
+    if (isDemo) {
+      setHoldings(MOCK_HOLDINGS);
+    } else {
+      fetchHoldings();
+    }
     fetchLivePrices();
-  }, []);
+  }, [isDemo]);
 
   /* ---------------- PORTFOLIO TOTAL ---------------- */
   const portfolioValue = holdings.reduce((sum, h) => {

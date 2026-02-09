@@ -2,6 +2,8 @@ package com.CryptoProject.CryptoInfosys.service;
 
 import com.CryptoProject.CryptoInfosys.dto.GeminiRequest;
 import com.CryptoProject.CryptoInfosys.dto.GeminiResponse;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.stereotype.Service;
 import org.springframework.web.reactive.function.client.WebClient;
@@ -9,6 +11,8 @@ import org.springframework.web.reactive.function.client.WebClient;
 import java.util.List;
 @Service
 public class AiAssistantServiceImpl implements AiAssistantService {
+
+    private static final Logger LOGGER = LoggerFactory.getLogger(AiAssistantServiceImpl.class);
 
     private final WebClient webClient;
 
@@ -30,17 +34,13 @@ public class AiAssistantServiceImpl implements AiAssistantService {
                         new GeminiRequest.Content(
                                 List.of(new GeminiRequest.Part(prompt))
                         )
-                )
+                ),
+                "gemini-pro"
         );
 
         try {
             GeminiResponse response = webClient.post()
-                    .uri(uriBuilder ->
-                            uriBuilder
-                                    .path(apiUrl)
-                                    .queryParam("key", apiKey)
-                                    .build()
-                    )
+                    .uri(apiUrl + ":generateContent?key=" + apiKey)
                     .bodyValue(request)
                     .retrieve()
                     .bodyToMono(GeminiResponse.class)
@@ -61,6 +61,7 @@ public class AiAssistantServiceImpl implements AiAssistantService {
                     .text();
 
         } catch (Exception e) {
+            LOGGER.error("AI service call failed", e);
             // NEVER crash dashboard because AI failed
             return "AI service is temporarily unavailable. Please try again later.";
         }

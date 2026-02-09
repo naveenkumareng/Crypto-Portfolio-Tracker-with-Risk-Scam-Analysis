@@ -11,6 +11,7 @@
     "@testing-library/user-event": "^13.5.0",
     "axios": "^1.13.2",
     "framer-motion": "^12.27.1",
+    "install": "^0.13.0",
     "lucide-react": "^0.562.0",
     "react": "^19.2.1",
     "react-dom": "^19.2.1",

@@ -6,17 +6,19 @@ import org.springframework.http.ResponseEntity;
 import org.springframework.security.access.prepost.PreAuthorize;
 import org.springframework.web.bind.annotation.*;
 
+record AiRequest(String message, boolean isDemoMode) {}
+
 @RestController
-@RequestMapping("/ai")
+@RequestMapping("/api/ai")
 public class AiAssistantController {
 
     @Autowired
     private AiAssistantService aiAssistantService;
 
-    @PostMapping("/assistant")
-    @PreAuthorize("isAuthenticated()") // JWT protection
-    public ResponseEntity<String> getAiResponse(@RequestBody String userMessage) {
-        String response = aiAssistantService.generateResponse(userMessage);
+    @PostMapping("/chat")
+    @PreAuthorize("isAuthenticated()")
+    public ResponseEntity<String> getAiResponse(@RequestBody AiRequest request) {
+        String response = aiAssistantService.generateResponse(request.message(), request.isDemoMode());
         return ResponseEntity.ok(response);
     }
 }

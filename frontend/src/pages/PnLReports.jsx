@@ -1,4 +1,5 @@
-import { useEffect, useState } from "react";
+import { useEffect, useState, useContext } from "react";
+import { DemoContext } from "../context/DemoContext";
 import DashboardLayout from "../layout/DashboardLayout";
 import api from "../api/axios";
 
@@ -13,24 +14,54 @@ import {
 } from "recharts";
 
 export default function PnLReport() {
+  const { isDemo } = useContext(DemoContext);
   const [summary, setSummary] = useState(null);
   const [taxSummary, setTaxSummary] = useState(null);
   const [loading, setLoading] = useState(true);
   const [taxLoading, setTaxLoading] = useState(true);
 
-  useEffect(() => {
-    api
-      .get("/api/pnl")
-      .then((res) => setSummary(res.data))
-      .catch((err) => console.error("PnL fetch error", err))
-      .finally(() => setLoading(false));
+  const MOCK_PNL_SUMMARY = {
+    totalUnrealizedPnL: 15000,
+    totalRealizedPnL: 2000,
+    assets: [
+      { asset: 'BTC', quantity: 0.5, avgBuyPrice: 48000, currentPrice: 52000, unrealizedPnL: 2000, realizedPnL: 500 },
+      { asset: 'ETH', quantity: 10, avgBuyPrice: 2800, currentPrice: 3100, unrealizedPnL: 3000, realizedPnL: 1500 },
+    ],
+  };
 
-    api
-      .get("/api/tax/hints")
-      .then((res) => setTaxSummary(res.data))
-      .catch((err) => console.error("Tax hints fetch error", err))
-      .finally(() => setTaxLoading(false));
-  }, []);
+  const MOCK_TAX_SUMMARY = {
+    totalRealizedGains: 2000,
+    totalEstimatedTax: 300,
+    shortTermGains: 1500,
+    shortTermTax: 225,
+    longTermGains: 500,
+    longTermTax: 75,
+    recommendations: ['Consider holding ETH for longer to benefit from long-term tax rates.'],
+    hints: [
+      { symbol: 'ETH', realizedGain: 1500, estimatedTax: 225, holdingPeriod: 'SHORT_TERM', daysHeld: 180, hint: 'Selling now will result in short-term capital gains tax.', hintType: 'WARNING' },
+    ],
+  };
+
+  useEffect(() => {
+    if (isDemo) {
+      setSummary(MOCK_PNL_SUMMARY);
+      setTaxSummary(MOCK_TAX_SUMMARY);
+      setLoading(false);
+      setTaxLoading(false);
+    } else {
+      api
+        .get("/api/pnl")
+        .then((res) => setSummary(res.data))
+        .catch((err) => console.error("PnL fetch error", err))
+        .finally(() => setLoading(false));
+
+      api
+        .get("/api/tax/hints")
+        .then((res) => setTaxSummary(res.data))
+        .catch((err) => console.error("Tax hints fetch error", err))
+        .finally(() => setTaxLoading(false));
+    }
+  }, [isDemo]);
 
   /* ---------------- EXPORT CSV ---------------- */
   const exportToCSV = () => {
@@ -117,7 +148,8 @@ export default function PnLReport() {
 
           <button
             onClick={exportToCSV}
-            className="px-6 py-2 rounded-lg bg-green-600 hover:bg-green-700 font-semibold"
+            disabled={isDemo}
+            className={`px-6 py-2 rounded-lg bg-green-600 hover:bg-green-700 font-semibold ${isDemo && 'opacity-50 cursor-not-allowed'}`}
           >
             Export CSV
           </button>
