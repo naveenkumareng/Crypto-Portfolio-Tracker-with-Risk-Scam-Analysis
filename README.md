@@ -299,38 +299,3 @@ npm run deploy
 3. View detailed profit/loss calculations
 4. Export reports to PDF/Excel
 
-## 🤝 Contributing
-
-Contributions are welcome! Please follow these steps:
-
-1. Fork the repository
-2. Create a feature branch (`git checkout -b feature/AmazingFeature`)
-3. Commit your changes (`git commit -m 'Add some AmazingFeature'`)
-4. Push to the branch (`git push origin feature/AmazingFeature`)
-5. Open a Pull Request
-
-## 📝 License
-
-This project is licensed under the MIT License - see the [LICENSE](LICENSE) file for details.
-
-## 🔗 Links
-
-- **GitHub Repository**: https://github.com/naveenkumareng/Crypto-Portfolio-Tracker-with-Risk-Scam-Analysis
-- **Live Demo**: (Coming soon)
-- **Documentation**: (Wiki coming soon)
-
-## 📞 Support
-
-For support, email: support@cryptotracker.com or open an issue on GitHub.
-
-## 🙏 Acknowledgments
-
-- CoinGecko API for cryptocurrency market data
-- OpenAI for AI-powered scam detection
-- Spring Boot community for excellent framework
-- React community for frontend tools
-- All contributors who have helped with this project
-
----
-
-**Made with ❤️ by the Crypto Portfolio Tracker Team**
