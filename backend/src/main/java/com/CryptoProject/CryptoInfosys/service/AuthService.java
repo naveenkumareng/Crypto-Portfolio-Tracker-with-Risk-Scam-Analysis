@@ -11,12 +11,10 @@ import com.CryptoProject.CryptoInfosys.repository.UserRepository;
 import com.CryptoProject.CryptoInfosys.security.JwtUtils;
 import org.springframework.security.crypto.password.PasswordEncoder;
 import org.springframework.stereotype.Service;
-import com.CryptoProject.CryptoInfosys.service.EmailService;
-import lombok.RequiredArgsConstructor;
+
 import org.springframework.transaction.annotation.Transactional;
 import java.util.UUID;
 import java.time.LocalDateTime;
-
 
 @Service
 @Transactional
@@ -27,19 +25,19 @@ public class AuthService {
     private final JwtUtils jwtUtils;
     private final PasswordResetTokenRepository passwordResetTokenRepository;
     private final EmailService emailService;
-    
 
-    public AuthService(UserRepository userRepo, 
-    PasswordEncoder passwordEncoder, 
-    JwtUtils jwtUtils, 
-    PasswordResetTokenRepository passwordResetTokenRepository, 
-    EmailService emailService) {
+    public AuthService(UserRepository userRepo,
+            PasswordEncoder passwordEncoder,
+            JwtUtils jwtUtils,
+            PasswordResetTokenRepository passwordResetTokenRepository,
+            EmailService emailService) {
         this.userRepo = userRepo;
         this.passwordEncoder = passwordEncoder;
         this.jwtUtils = jwtUtils;
         this.passwordResetTokenRepository = passwordResetTokenRepository;
         this.emailService = emailService;
     }
+
     // Register -> Authentication
     @Transactional
     public void register(RegisterRequest req) {
@@ -53,6 +51,7 @@ public class AuthService {
                 .build();
         userRepo.save(u);
     }
+
     // Login -> Authentication
     public AuthResponse login(AuthRequest req) {
         User u = userRepo.findByEmail(req.getEmail())
@@ -67,61 +66,54 @@ public class AuthService {
     }
 
     // Forgot Password
-@Transactional
-public void forgotPassword(String email) {
+    @Transactional
+    public void forgotPassword(String email) {
 
-    User user = userRepo.findByEmail(email)
-            .orElseThrow(() ->
-                    new RuntimeException("User not found"));
+        User user = userRepo.findByEmail(email)
+                .orElseThrow(() -> new RuntimeException("User not found"));
 
-    String token = UUID.randomUUID().toString();
-    LocalDateTime expiry = LocalDateTime.now().plusMinutes(15);
+        String token = UUID.randomUUID().toString();
+        LocalDateTime expiry = LocalDateTime.now().plusMinutes(15);
 
-    PasswordResetToken resetToken =
-            passwordResetTokenRepository.findByUser(user)
-                    .orElse(null);
+        PasswordResetToken resetToken = passwordResetTokenRepository.findByUser(user)
+                .orElse(null);
 
-    if (resetToken != null) {
-        // 🔥 Update existing token
-        resetToken.setToken(token);
-        resetToken.setExpiryDate(expiry);
-    } else {
-        // 🔥 Create new token
-        resetToken = new PasswordResetToken(token, user, expiry);
+        if (resetToken != null) {
+            // 🔥 Update existing token
+            resetToken.setToken(token);
+            resetToken.setExpiryDate(expiry);
+        } else {
+            // 🔥 Create new token
+            resetToken = new PasswordResetToken(token, user, expiry);
+        }
+
+        passwordResetTokenRepository.save(resetToken);
+
+        emailService.sendPasswordResetEmail(user.getEmail(), token);
     }
 
-    passwordResetTokenRepository.save(resetToken);
+    // Reset Password
+    public void resetPassword(ResetPasswordRequest request) {
 
-    emailService.sendPasswordResetEmail(user.getEmail(), token);
-}
+        PasswordResetToken resetToken = passwordResetTokenRepository
+                .findByToken(request.getToken())
+                .orElseThrow(() -> new RuntimeException("Invalid reset token"));
 
+        if (resetToken.getExpiryDate()
+                .isBefore(java.time.LocalDateTime.now())) {
 
+            passwordResetTokenRepository.delete(resetToken);
+            throw new RuntimeException("Reset token expired");
+        }
 
+        User user = resetToken.getUser();
 
-// Reset Password
-public void resetPassword(ResetPasswordRequest request) {
+        user.setPassword(
+                passwordEncoder.encode(request.getNewPassword()));
 
-    PasswordResetToken resetToken = passwordResetTokenRepository
-            .findByToken(request.getToken())
-            .orElseThrow(() ->
-                    new RuntimeException("Invalid reset token"));
-
-    if (resetToken.getExpiryDate()
-            .isBefore(java.time.LocalDateTime.now())) {
+        userRepo.save(user);
 
         passwordResetTokenRepository.delete(resetToken);
-        throw new RuntimeException("Reset token expired");
     }
-
-    User user = resetToken.getUser();
-
-    user.setPassword(
-            passwordEncoder.encode(request.getNewPassword())
-    );
-
-    userRepo.save(user);
-
-    passwordResetTokenRepository.delete(resetToken);
-}
 
 }

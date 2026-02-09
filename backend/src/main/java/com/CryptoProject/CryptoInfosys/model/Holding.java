@@ -2,7 +2,6 @@ package com.CryptoProject.CryptoInfosys.model;
 
 import jakarta.persistence.*;
 
-import com.CryptoProject.CryptoInfosys.model.User;
 import lombok.Getter;
 import lombok.Setter;
 import java.math.BigDecimal;
@@ -29,11 +28,13 @@ public class Holding {
     private String exchange;
 
     private BigDecimal quantity;
-    private BigDecimal price;  // buy price or latest updated price
+    private BigDecimal price; // buy price or latest updated price
 
-    public Holding() {}
+    public Holding() {
+    }
 
-    public Holding(Integer id, User user, String asset, String symbol, BigDecimal quantity, BigDecimal price, String username) {
+    public Holding(Integer id, User user, String asset, String symbol, BigDecimal quantity, BigDecimal price,
+            String exchange) {
         this.id = id;
         this.user = user;
         this.asset = asset;
@@ -42,6 +43,7 @@ public class Holding {
         this.quantity = quantity;
         this.price = price;
     }
+
     public String getUserIdentifier() {
         return user != null ? user.getEmail() : null; // or getUserId()
     }
@@ -60,37 +62,36 @@ public class Holding {
     }
 
     @PrePersist
-@PreUpdate
-private void validate() {
-    if (symbol == null || symbol.isBlank()) {
-        throw new IllegalArgumentException("Asset symbol is required");
+    @PreUpdate
+    private void validate() {
+        if (symbol == null || symbol.isBlank()) {
+            throw new IllegalArgumentException("Asset symbol is required");
+        }
+        if (exchange == null || exchange.isBlank()) {
+            throw new IllegalArgumentException("Exchange is required");
+        }
+        if (quantity == null || quantity.compareTo(BigDecimal.ZERO) < 0) {
+            throw new IllegalArgumentException("Quantity cannot be negative");
+        }
+        if (price == null || price.compareTo(BigDecimal.ZERO) < 0) {
+            throw new IllegalArgumentException("Price cannot be negative");
+        }
     }
-    if (exchange == null || exchange.isBlank()) {
-        throw new IllegalArgumentException("Exchange is required");
-    }
-    if (quantity == null || quantity.compareTo(BigDecimal.ZERO) < 0) {
-        throw new IllegalArgumentException("Quantity cannot be negative");
-    }
-    if (price == null || price.compareTo(BigDecimal.ZERO) < 0) {
-        throw new IllegalArgumentException("Price cannot be negative");
-    }
-}
-
 
     public String getSymbol() {
-    return symbol;
-}
+        return symbol;
+    }
 
-public String getExchange() {
-    return exchange;
-}
+    public String getExchange() {
+        return exchange;
+    }
 
-public BigDecimal getQuantity() {
-    return quantity;
-}
+    public BigDecimal getQuantity() {
+        return quantity;
+    }
 
-public BigDecimal getPrice() {
-    return price;
-}
+    public BigDecimal getPrice() {
+        return price;
+    }
 
 }

@@ -1,13 +1,9 @@
 package com.CryptoProject.CryptoInfosys.controller;
 
-import com.CryptoProject.CryptoInfosys.model.Notification;
-import com.CryptoProject.CryptoInfosys.repository.NotificationRepository;
 import com.CryptoProject.CryptoInfosys.security.JwtUtils;
 import com.CryptoProject.CryptoInfosys.service.NotificationService;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
-
-import java.util.List;
 
 @RestController
 @RequestMapping("/api/notifications")
@@ -28,8 +24,7 @@ public class NotificationController {
         String email = jwtUtils.extractUsername(token);
 
         return ResponseEntity.ok(
-                notificationService.getUserNotifications(email)
-        );
+                notificationService.getUserNotifications(email));
     }
 
     // --------------------------------------------------
@@ -37,14 +32,12 @@ public class NotificationController {
     // --------------------------------------------------
     @GetMapping("/unread-count")
     public ResponseEntity<?> getUnreadCount(
-            @RequestHeader("Authorization") String authHeader
-    ) {
+            @RequestHeader("Authorization") String authHeader) {
         String token = authHeader.substring(7);
         String email = jwtUtils.extractUsername(token);
 
         return ResponseEntity.ok(
-                notificationService.getUnreadCount(email)
-        );
+                notificationService.getUnreadCount(email));
     }
 
     // --------------------------------------------------
@@ -53,26 +46,25 @@ public class NotificationController {
     @PostMapping("/{id}/read")
     public ResponseEntity<?> markAsRead(
             @PathVariable Long id,
-            @RequestHeader("Authorization") String authHeader
-    ) {
+            @RequestHeader("Authorization") String authHeader) {
         String token = authHeader.substring(7);
         String email = jwtUtils.extractUsername(token);
 
         notificationService.markAsRead(id, email);
         return ResponseEntity.ok().build();
     }
- // --------------------------------------------------
- // MARK ALL AS READ
- // --------------------------------------------------
- @PostMapping("/read-all")
- public ResponseEntity<?> markAllAsRead(
-         @RequestHeader("Authorization") String authHeader
- ) {
-     String token = authHeader.substring(7);
-     String email = jwtUtils.extractUsername(token);
 
-     notificationService.markAllAsRead(email);
-     return ResponseEntity.ok().build();
- }
+    // --------------------------------------------------
+    // MARK ALL AS READ
+    // --------------------------------------------------
+    @PostMapping("/read-all")
+    public ResponseEntity<?> markAllAsRead(
+            @RequestHeader("Authorization") String authHeader) {
+        String token = authHeader.substring(7);
+        String email = jwtUtils.extractUsername(token);
+
+        notificationService.markAllAsRead(email);
+        return ResponseEntity.ok().build();
+    }
 
 }

@@ -13,25 +13,25 @@ public class MarketPriceService {
 
     // You can later make this dynamic (from holdings)
     private static final List<String> ASSETS = List.of(
-    		  "bitcoin",
-    		  "ethereum",
-    		  "solana",
-    		  "binancecoin",
-    		  "ripple",
-    		  "tether",
-    		  "usd-coin",
-    		  "tron"
-    		);
-
+            "bitcoin",
+            "ethereum",
+            "solana",
+            "binancecoin",
+            "ripple",
+            "tether",
+            "usd-coin",
+            "tron");
 
     public List<Map<String, Object>> fetchMarketPrices() {
 
         String ids = String.join(",", ASSETS);
 
-        String url =
-            "https://api.coingecko.com/api/v3/coins/markets" +
-            "?vs_currency=usd&ids=" + ids;
+        String url = "https://api.coingecko.com/api/v3/coins/markets" +
+                "?vs_currency=usd&ids=" + ids;
 
-        return restTemplate.getForObject(url, List.class);
+        @SuppressWarnings("unchecked")
+        List<Map<String, Object>> result = (List<Map<String, Object>>) (List<?>) restTemplate.getForObject(url,
+                List.class);
+        return result;
     }
 }

@@ -28,8 +28,7 @@ public class TradeService {
             TradeRepository tradeRepo,
             UserRepository userRepo,
             HoldingRepository holdingRepo,
-            NotificationService notificationService
-    ) {
+            NotificationService notificationService) {
         this.tradeRepo = tradeRepo;
         this.userRepo = userRepo;
         this.holdingRepo = holdingRepo;
@@ -38,115 +37,110 @@ public class TradeService {
 
     /* ================= ADD TRADE ================= */
     @Transactional
-public Trade addTrade(TradeRequest request, String email) {
+    public Trade addTrade(TradeRequest request, String email) {
 
-    User user = userRepo.findByEmail(email)
-            .orElseThrow(() -> new RuntimeException("User not found"));
+        User user = userRepo.findByEmail(email)
+                .orElseThrow(() -> new RuntimeException("User not found"));
 
-    if (request.getAssetSymbol() == null || request.getAssetSymbol().isBlank()) {
-        throw new IllegalArgumentException("Asset symbol is required");
+        if (request.getAssetSymbol() == null || request.getAssetSymbol().isBlank()) {
+            throw new IllegalArgumentException("Asset symbol is required");
+        }
+        if (request.getExchange() == null || request.getExchange().isBlank()) {
+            throw new IllegalArgumentException("Exchange is required");
+        }
+
+        Trade trade = new Trade();
+        trade.setUser(user);
+        trade.setAssetSymbol(request.getAssetSymbol());
+        trade.setExchange(request.getExchange());
+        trade.setSide(request.getSide());
+        trade.setQuantity(request.getQuantity());
+        trade.setPrice(request.getPrice());
+        trade.setFee(request.getFee());
+        trade.setExecutedAt(LocalDateTime.now());
+
+        Trade saved = tradeRepo.save(trade);
+
+        notificationService.createNotification(
+                email,
+                "Trade Executed",
+                request.getSide() + " " +
+                        request.getQuantity() + " " +
+                        request.getAssetSymbol() +
+                        " on " + request.getExchange() +
+                        " @ ₹" + request.getPrice(),
+                "INFO");
+
+        rebuildHoldingsForUser(user);
+        return saved;
     }
-    if (request.getExchange() == null || request.getExchange().isBlank()) {
-        throw new IllegalArgumentException("Exchange is required");
-    }
-
-    Trade trade = new Trade();
-    trade.setUser(user);
-    trade.setAssetSymbol(request.getAssetSymbol());
-    trade.setExchange(request.getExchange());          
-    trade.setSide(request.getSide());
-    trade.setQuantity(request.getQuantity());
-    trade.setPrice(request.getPrice());
-    trade.setFee(request.getFee());
-    trade.setExecutedAt(LocalDateTime.now());
-
-    Trade saved = tradeRepo.save(trade);
-
-    notificationService.createNotification(
-            email,
-            "Trade Executed",
-            request.getSide() + " " +
-                    request.getQuantity() + " " +
-                    request.getAssetSymbol() +
-                    " on " + request.getExchange() +
-                    " @ ₹" + request.getPrice(),
-            "INFO"
-    );
-
-    rebuildHoldingsForUser(user);
-    return saved;
-}
-
 
     /* ================= UPDATE TRADE ================= */
     @Transactional
-public Trade updateTrade(Long id, TradeRequest request, String email) {
+    public Trade updateTrade(Long id, TradeRequest request, String email) {
 
-    User user = userRepo.findByEmail(email)
-            .orElseThrow(() -> new RuntimeException("User not found"));
+        User user = userRepo.findByEmail(email)
+                .orElseThrow(() -> new RuntimeException("User not found"));
 
-    Trade trade = tradeRepo.findById(id)
-            .orElseThrow(() -> new RuntimeException("Trade not found"));
+        @SuppressWarnings("null")
+        Trade trade = tradeRepo.findById(id)
+                .orElseThrow(() -> new RuntimeException("Trade not found"));
 
-    if (!trade.getUser().getId().equals(user.getId())) {
-        throw new RuntimeException("Unauthorized update");
+        if (!trade.getUser().getId().equals(user.getId())) {
+            throw new RuntimeException("Unauthorized update");
+        }
+
+        if (request.getExchange() == null || request.getExchange().isBlank()) {
+            throw new IllegalArgumentException("Exchange is required");
+        }
+
+        BigDecimal oldQty = trade.getQuantity();
+        BigDecimal oldPrice = trade.getPrice();
+
+        trade.setAssetSymbol(request.getAssetSymbol());
+        trade.setExchange(request.getExchange());
+        trade.setSide(request.getSide());
+        trade.setQuantity(request.getQuantity());
+        trade.setPrice(request.getPrice());
+        trade.setFee(request.getFee());
+
+        Trade saved = tradeRepo.save(trade);
+
+        notificationService.createNotification(
+                email,
+                "Trade Updated",
+                trade.getAssetSymbol() + " (" + trade.getExchange() + ")" +
+                        " updated (Qty: " + oldQty + " → " + request.getQuantity() +
+                        ", Price: ₹" + oldPrice + " → ₹" + request.getPrice() + ")",
+                "INFO");
+
+        rebuildHoldingsForUser(user);
+        return saved;
     }
-
-    if (request.getExchange() == null || request.getExchange().isBlank()) {
-        throw new IllegalArgumentException("Exchange is required");
-    }
-
-    BigDecimal oldQty = trade.getQuantity();
-    BigDecimal oldPrice = trade.getPrice();
-
-    trade.setAssetSymbol(request.getAssetSymbol());
-    trade.setExchange(request.getExchange());          
-    trade.setSide(request.getSide());
-    trade.setQuantity(request.getQuantity());
-    trade.setPrice(request.getPrice());
-    trade.setFee(request.getFee());
-
-    Trade saved = tradeRepo.save(trade);
-
-    notificationService.createNotification(
-            email,
-            "Trade Updated",
-            trade.getAssetSymbol() + " (" + trade.getExchange() + ")" +
-                    " updated (Qty: " + oldQty + " → " + request.getQuantity() +
-                    ", Price: ₹" + oldPrice + " → ₹" + request.getPrice() + ")",
-            "INFO"
-    );
-
-    rebuildHoldingsForUser(user);
-    return saved;
-}
-
 
     /* ================= DELETE TRADE ================= */
     @Transactional
-public void deleteTrade(Long id, String email) {
+    public void deleteTrade(Long id, String email) {
 
-    User user = userRepo.findByEmail(email)
-            .orElseThrow(() -> new RuntimeException("User not found"));
+        User user = userRepo.findByEmail(email)
+                .orElseThrow(() -> new RuntimeException("User not found"));
 
-    Trade trade = tradeRepo.findByIdAndUser(id, user)
-            .orElseThrow(() -> new RuntimeException("Trade not found"));
+        Trade trade = tradeRepo.findByIdAndUser(id, user)
+                .orElseThrow(() -> new RuntimeException("Trade not found"));
 
-    tradeRepo.delete(trade);
+        tradeRepo.delete(trade);
 
-    notificationService.createNotification(
-            email,
-            "Trade Deleted",
-            trade.getAssetSymbol() +
-                    " (" + trade.getExchange() + ")" +
-                    " trade deleted (Qty: " + trade.getQuantity() +
-                    ", Price: ₹" + trade.getPrice() + ")",
-            "INFO"
-    );
+        notificationService.createNotification(
+                email,
+                "Trade Deleted",
+                trade.getAssetSymbol() +
+                        " (" + trade.getExchange() + ")" +
+                        " trade deleted (Qty: " + trade.getQuantity() +
+                        ", Price: ₹" + trade.getPrice() + ")",
+                "INFO");
 
-    rebuildHoldingsForUser(user);
-}
-
+        rebuildHoldingsForUser(user);
+    }
 
     /* ================= GET TRADES ================= */
     @Transactional(readOnly = true)
@@ -157,51 +151,48 @@ public void deleteTrade(Long id, String email) {
 
     /* ================= REBUILD HOLDINGS (CORE LOGIC) ================= */
     @Transactional
-public void rebuildHoldingsForUser(User user) {
+    public void rebuildHoldingsForUser(User user) {
 
-    // 1️⃣ Clear existing holdings
-    holdingRepo.deleteByUser(user);
+        // 1️⃣ Clear existing holdings
+        holdingRepo.deleteByUser(user);
 
-    // 2️⃣ Fetch all trades
-    List<Trade> trades = tradeRepo.findByUser(user);
+        // 2️⃣ Fetch all trades
+        List<Trade> trades = tradeRepo.findByUser(user);
 
-    // 3️⃣ Rebuild holdings from trades
-    for (Trade t : trades) {
+        // 3️⃣ Rebuild holdings from trades
+        for (Trade t : trades) {
 
-        Holding holding = holdingRepo
-                .findByUserAndSymbolAndExchange(
-                        user,
-                        t.getAssetSymbol(),
-                        t.getExchange()
-                )
-                .orElseGet(() -> {
-                    Holding h = new Holding();
-                    h.setUser(user);
-                    h.setSymbol(t.getAssetSymbol());
-                    h.setAsset(t.getAssetSymbol());
-                    h.setExchange(t.getExchange());
-                    h.setQuantity(BigDecimal.ZERO);
-                    h.setPrice(t.getPrice());
-                    return h;
-                });
+            Holding holding = holdingRepo
+                    .findByUserAndSymbolAndExchange(
+                            user,
+                            t.getAssetSymbol(),
+                            t.getExchange())
+                    .orElseGet(() -> {
+                        Holding h = new Holding();
+                        h.setUser(user);
+                        h.setSymbol(t.getAssetSymbol());
+                        h.setAsset(t.getAssetSymbol());
+                        h.setExchange(t.getExchange());
+                        h.setQuantity(BigDecimal.ZERO);
+                        h.setPrice(t.getPrice());
+                        return h;
+                    });
 
-        // 4️⃣ Update quantity based on BUY / SELL
-        if (t.getSide() == TradeSide.BUY) {
-            holding.setQuantity(
-                    holding.getQuantity().add(t.getQuantity())
-            );
-        } else if (t.getSide() == TradeSide.SELL) {
-            holding.setQuantity(
-                    holding.getQuantity().subtract(t.getQuantity())
-            );
+            // 4️⃣ Update quantity based on BUY / SELL
+            if (t.getSide() == TradeSide.BUY) {
+                holding.setQuantity(
+                        holding.getQuantity().add(t.getQuantity()));
+            } else if (t.getSide() == TradeSide.SELL) {
+                holding.setQuantity(
+                        holding.getQuantity().subtract(t.getQuantity()));
+            }
+
+            // 5️⃣ Update latest price (optional but recommended)
+            holding.setPrice(t.getPrice());
+
+            // 6️⃣ Save
+            holdingRepo.save(holding);
         }
-
-        // 5️⃣ Update latest price (optional but recommended)
-        holding.setPrice(t.getPrice());
-
-        // 6️⃣ Save
-        holdingRepo.save(holding);
     }
-}
 
 }

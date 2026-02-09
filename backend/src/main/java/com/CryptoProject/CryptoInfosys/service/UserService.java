@@ -21,7 +21,9 @@ public class UserService {
     }
 
     public User saveUser(User user) {
-        return userRepository.save(user);
+        @SuppressWarnings("null")
+        User saved = userRepository.save(user);
+        return saved;
     }
 
     public boolean existsByEmail(String email) {
@@ -33,7 +35,9 @@ public class UserService {
     }
 
     public User updateUser(User user) {
-        return userRepository.save(user);
+        @SuppressWarnings("null")
+        User updated = userRepository.save(user);
+        return updated;
     }
 
     public void changePassword(String email, String newPassword) {
